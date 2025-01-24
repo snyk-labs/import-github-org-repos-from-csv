@@ -4,7 +4,7 @@ This script will search your GitHub organizations for any matching Snyk organiza
 
 ## Requirements
 
-Python version 3.9.5, 3.10.14
+Python version 3.10.14
 
 Download [snyk-api-import](https://github.com/snyk/snyk-api-import/releases), make the file executable, and place the file in the root directory of this repo.
 
