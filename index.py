@@ -51,23 +51,30 @@ def run_snyk_api_import(
         # Get all organizations using the githubapi module from apis package
         github_orgs = list_organizations(github_token)
         print("Collected GitHub orgs")
+    except Exception as e:
+        print(f"Error in collecting GitHub orgs: {str(e)}")
+        raise typer.Exit(1)
         
+    try:
         # Get all organizations using the snykapi module from apis package
         snyk_orgs = get_snyk_orgs(group_id)
         print("Collected Snyk orgs")
+    except Exception as e:
+        print(f"Error in collecting Snyk orgs: {str(e)}")
+        raise typer.Exit(1)
 
-        # Create lookup dictionaries
-        github_org_dict = {org['login']: org for org in github_orgs}
-        snyk_org_dict = {}
-        for org in snyk_orgs:
-            # Add entry with slug as key
-            snyk_org_dict[org['attributes']['slug']] = org
-            # Add entry with name as key
-            snyk_org_dict[org['attributes']['name']] = org
+    # Create lookup dictionaries
+    github_org_dict = {org['login']: org for org in github_orgs}
+    snyk_org_dict = {}
+    for org in snyk_orgs:
+    # Add entry with slug as key
+        snyk_org_dict[org['attributes']['slug']] = org
+        # Add entry with name as key
+        snyk_org_dict[org['attributes']['name']] = org
         
         # Store matches
         matches = []
-        
+    try:
         # Compare CSV entries with both GitHub and Snyk orgs
         for row in csv_data:
             print(f"Processing row: {row}")
@@ -81,7 +88,6 @@ def run_snyk_api_import(
                     'github_org_name': github_org_name,
                     'snyk_org_id': snyk_org_dict[snyk_org]['id']
                 })
-        
         
         for match in matches:
             snykIntegrations = get_org_integrations(match['snyk_org_id'])
