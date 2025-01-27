@@ -68,7 +68,7 @@ def pagination_snyk_rest_endpoint(method, url, *args):
                 # Check if next page exist and set url if it does.  If not, exit and return issuesData
                 try:
                     api_response.json()['links']['next']
-                    url = 'https://api.snyk.io' + api_response.json()['links']['next']
+                    url = 'https://api.us.snyk.io' + api_response.json()['links']['next']
                 except:
                     has_next_link = False
                     return data
@@ -76,7 +76,7 @@ def pagination_snyk_rest_endpoint(method, url, *args):
 
 def get_org_integrations(orgId, orgName = 'No Name provided'):
     # print(f"Collecting organization integrations for {orgName}")
-    url = f'https://api.snyk.io/v1/org/{orgId}/integrations'
+    url = f'https://api.us.snyk.io/v1/org/{orgId}/integrations'
 
     try:
         integrationsApiResponse = requests.get(url, headers=v1Headers)
@@ -89,7 +89,7 @@ def get_org_integrations(orgId, orgName = 'No Name provided'):
 
 def get_snyk_orgs(groupId):
     print("Collecting organization IDs")
-    url = f'https://api.snyk.io/rest/groups/{groupId}/orgs?version={rest_version}&limit=100'
+    url = f'https://api.us.snyk.io/rest/groups/{groupId}/orgs?version={rest_version}&limit=100'
     hasNextLink = True
     orgs = []
 
@@ -105,21 +105,21 @@ def get_snyk_orgs(groupId):
         # Check if next page exist and set url if it does.  If not, exit and return issuesData
         try:
             orgApiResponse.json()['links']['next']
-            url = 'https://api.snyk.io' + orgApiResponse.json()['links']['next']
+            url = 'https://api.us.snyk.io' + orgApiResponse.json()['links']['next']
         except:
             hasNextLink = False
             return orgs
         
 # Get all snyk targets in org.
 def get_snyk_targets(org_id):
-    url = f'https://api.snyk.io/rest/orgs/{org_id}/targets?version={rest_version}&limit=100'
+    url = f'https://api.us.snyk.io/rest/orgs/{org_id}/targets?version={rest_version}&limit=100'
     
     target_data = pagination_snyk_rest_endpoint('GET', url)
     
     return target_data
 
 def delete_target(org_id, target_id):
-    url = f'https://api.snyk.io/rest/orgs/{org_id}/targets/{target_id}?version={rest_version}'
+    url = f'https://api.us.snyk.io/rest/orgs/{org_id}/targets/{target_id}?version={rest_version}'
     
     response = requests.delete(url, headers=restHeaders)
     
