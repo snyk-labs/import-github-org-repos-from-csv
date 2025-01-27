@@ -50,9 +50,11 @@ def run_snyk_api_import(
     try:
         # Get all organizations using the githubapi module from apis package
         github_orgs = list_organizations(github_token)
+        print("Collected GitHub orgs")
         
         # Get all organizations using the snykapi module from apis package
         snyk_orgs = get_snyk_orgs(group_id)
+        print("Collected Snyk orgs")
 
         # Create lookup dictionaries
         github_org_dict = {org['login']: org for org in github_orgs}
@@ -68,6 +70,7 @@ def run_snyk_api_import(
         
         # Compare CSV entries with both GitHub and Snyk orgs
         for row in csv_data:
+            print(f"Processing row: {row}")
             github_org_name = row['GitHub-Org-Name']
             snyk_org = row['Snyk-Org-Name']
             
