@@ -1,10 +1,10 @@
-# Create snyk-created-orgs.json based off of Snyk Organization Names
+# Create snyk-created-orgs.json based off of Snyk and GitHub Organization Names
 
 This script will search your GitHub organizations for any matching Snyk organization based off of GitHub organization mapping in a csv.  If matches are found, it will generate snyk-created-orgs.json which will be used to import repos into Snyk.
 
 ## Requirements
 
-Python version 3.9.5, 3.10.0
+Python version 3.10.14
 
 Download [snyk-api-import](https://github.com/snyk/snyk-api-import/releases), make the file executable, and place the file in the root directory of this repo.
 

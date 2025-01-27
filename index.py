@@ -69,14 +69,14 @@ def run_snyk_api_import(
         # Compare CSV entries with both GitHub and Snyk orgs
         for row in csv_data:
             github_org_name = row['GitHub-Org-Name']
-            mcd_name = row['Snyk-Org-Name']
+            snyk_org = row['Snyk-Org-Name']
             
             # Check if we have matches in both GitHub and Snyk
             if (github_org_name in github_org_dict and 
-                mcd_name in snyk_org_dict):
+                snyk_org in snyk_org_dict):
                 matches.append({
                     'github_org_name': github_org_name,
-                    'snyk_org_id': snyk_org_dict[mcd_name]['id']
+                    'snyk_org_id': snyk_org_dict[snyk_org]['id']
                 })
         
         
