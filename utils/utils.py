@@ -68,10 +68,10 @@ def import_repos(org_data_files_path, snyk_api_import_name, snyk_token):
         print(org_data_file_path)
         org_data_value = f'--orgsData={org_data_file_path}'
         # Run snyk-api-import import:data command
-        subprocess.run(f'SNYK_TOKEN={snyk_token} {current_directory}/{snyk_api_import_name} import:data {org_data_value} --source=github-enterprise --integrationType=github-enterprise', shell=True)
+        subprocess.run(f'SNYK_TOKEN={snyk_token} SNYK_API=https:/api.us.snyk.io/v1 {current_directory}/{snyk_api_import_name} import:data {org_data_value} --source=github-enterprise --integrationType=github-enterprise', shell=True)
         # Find github-import-targets.json and run import
         import_file_path = find_import_data_file()
-        subprocess.run(f'DEBUG=* SNYK_TOKEN={snyk_token} {current_directory}/{snyk_api_import_name} import --file={import_file_path}', shell=True)
+        subprocess.run(f'DEBUG=* SNYK_TOKEN={snyk_token} SNYK_API=https:/api.us.snyk.io/v1  {current_directory}/{snyk_api_import_name} import --file={import_file_path}', shell=True)
         
 def clean_up(list_of_files, switch):
     today_date = date.today()
