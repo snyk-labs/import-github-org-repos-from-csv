@@ -2,6 +2,9 @@ import typer
 from apis.snykApi import get_org_integrations, get_snyk_orgs
 from utils.utils import clean_up, find_log_files, find_org_data_files, import_repos, read_csv_file, writeJsonFile
 from apis.githubapi import list_organizations
+from helpers.helper import get_snyk_token
+
+SNYK_TOKEN = get_snyk_token()
 
 app = typer.Typer()
 
@@ -121,7 +124,7 @@ def run_snyk_api_import(
     
     # Import the json files
     try:
-        import_repos(org_data_files_path, snyk_api_import_name)
+        import_repos(org_data_files_path, snyk_api_import_name, SNYK_TOKEN)
     except Exception as e:
         print(f"Error in importing repos: {str(e)}")
         raise typer.Exit(1)
