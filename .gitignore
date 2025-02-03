@@ -1,5 +1,6 @@
 apis/__pycache__/
 helpers/__pycache__/
+utils/__pycache__/
 createOrgDataFileForSnykApiImportenv/
 snyk-created-orgs.json
 json-files*
