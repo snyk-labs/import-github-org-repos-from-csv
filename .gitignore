@@ -5,6 +5,7 @@ createOrgDataFileForSnykApiImportenv/
 snyk-created-orgs.json
 json-files*
 log-files*
+import-files-dir*
 snyk-api-import-macos
 group-*
 gitlab-import-targets.json

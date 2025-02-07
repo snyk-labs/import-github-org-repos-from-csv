@@ -74,9 +74,9 @@ def pagination_snyk_rest_endpoint(method, url, *args):
                     return data
                 
 
-def get_org_integrations(orgId, orgName = 'No Name provided'):
+def get_org_integrations(orgId, snyk_api_tenant, orgName = 'No Name provided'):
     # print(f"Collecting organization integrations for {orgName}")
-    url = f'https://api.us.snyk.io/v1/org/{orgId}/integrations'
+    url = f'https://{snyk_api_tenant}/v1/org/{orgId}/integrations'
 
     try:
         integrationsApiResponse = requests.get(url, headers=v1Headers)
@@ -86,10 +86,23 @@ def get_org_integrations(orgId, orgName = 'No Name provided'):
         print("Snyk Integrations endpoint failed.")
         print(exc)
 
+def create_snyk_org(org_data, source_org_id, index, group_id, snyk_api_tenant = 'api.us.snyk.io'):
+    url = f'https://{snyk_api_tenant}/v1/org'
+    body = {
+        "name": org_data['attributes']['name'] + '-' + str(index),
+        "groupId": group_id,
+        "sourceOrgId": source_org_id    
+    }
+    
+    try:
+        orgApiResponse = requests.post(url, headers=v1Headers, data=json.dumps(body))
+        return orgApiResponse.json()
+    except HTTPError as exc:
+        print(f"Snyk Org creation failed.  Error: {exc}")
 
-def get_snyk_orgs(groupId):
+def get_snyk_orgs(groupId, snyk_api_tenant = 'api.us.snyk.io'):
     print("Collecting organization IDs")
-    url = f'https://api.us.snyk.io/rest/groups/{groupId}/orgs?version={rest_version}&limit=100'
+    url = f'https://{snyk_api_tenant}/rest/groups/{groupId}/orgs?version={rest_version}&limit=100'
     hasNextLink = True
     orgs = []
 
@@ -109,18 +122,22 @@ def get_snyk_orgs(groupId):
         except:
             hasNextLink = False
             return orgs
+
+def get_snyk_org_data(org_id, snyk_api_tenant):
+    url = f'https://{snyk_api_tenant}/rest/orgs/{org_id}?version={rest_version}'
+    
+    try:
+        org_data_api_response = requests.get(url, headers=restHeaders)
+        org_data = org_data_api_response.json()['data']
+        return org_data
+    except:
+        print("Orgs data endpoint call failed.")
+        return org_data_api_response
         
 # Get all snyk targets in org.
-def get_snyk_targets(org_id):
-    url = f'https://api.us.snyk.io/rest/orgs/{org_id}/targets?version={rest_version}&limit=100'
+def get_snyk_targets(org_id, snyk_api_tenant = 'api.us.snyk.io'):
+    url = f'https://{snyk_api_tenant}/rest/orgs/{org_id}/targets?version={rest_version}&limit=100'
     
     target_data = pagination_snyk_rest_endpoint('GET', url)
     
     return target_data
-
-def delete_target(org_id, target_id):
-    url = f'https://api.us.snyk.io/rest/orgs/{org_id}/targets/{target_id}?version={rest_version}'
-    
-    response = requests.delete(url, headers=restHeaders)
-    
-    return response

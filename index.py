@@ -1,10 +1,7 @@
 import typer
 from apis.snykApi import get_org_integrations, get_snyk_orgs
-from utils.utils import clean_up, find_log_files, find_org_data_files, import_repos, read_csv_file, writeJsonFile
+from utils.utils import clean_up, find_log_files, find_org_data_files, import_repos, read_csv_file, writeJsonFile, find_batch_import_data_files
 from apis.githubapi import list_organizations
-from helpers.helper import get_snyk_token
-
-SNYK_TOKEN = get_snyk_token()
 
 app = typer.Typer()
 
@@ -39,11 +36,29 @@ def run_snyk_api_import(
         file_okay=True,
         dir_okay=False,
         readable=True
+    ),
+    snyk_api_tenant: str = typer.Option(
+        "api.us.snyk.io",  # Set default value
+        "--snyk-api-tenant",
+        help="Snyk API tenant listed here: https://docs.snyk.io/snyk-api/rest-api/about-the-rest-api.  Example: api.snyk.io, api.us.snyk.io, api.eu.snyk.io, api.au.snyk.io.  Default: api.us.snyk.io",
+        envvar="SNYK_API"
+    ),
+    snyk_source_org_id: str = typer.Option(
+        ...,
+        "--snyk-source-org-id",
+        help="Snyk source org ID",
+        envvar="SNYK_SOURCE_ORG_ID"
     )
 ):
     """
     Process the CSV file containing GitHub organization mappings and create organization data for Snyk API import.
     """
+    # Validate snyk_api_tenant
+    valid_tenants = ["api.snyk.io", "api.us.snyk.io", "api.eu.snyk.io", "api.au.snyk.io"]
+    if snyk_api_tenant not in valid_tenants:
+        typer.echo(f"Error: Invalid Snyk API tenant. Must be one of: {', '.join(valid_tenants)}")
+        raise typer.Exit(1)
+    
     # Read the CSV file
     csv_data = read_csv_file(csv_file_path)
     typer.echo(f"Successfully read CSV file with {len(csv_data)} entries")
@@ -60,7 +75,7 @@ def run_snyk_api_import(
         
     try:
         # Get all organizations using the snykapi module from apis package
-        snyk_orgs = get_snyk_orgs(group_id)
+        snyk_orgs = get_snyk_orgs(group_id, snyk_api_tenant)
         print("Collected Snyk orgs")
     except Exception as e:
         print(f"Error in collecting Snyk orgs: {str(e)}")
@@ -80,7 +95,6 @@ def run_snyk_api_import(
     try:
         # Compare CSV entries with both GitHub and Snyk orgs
         for row in csv_data:
-            print(f"Processing row: {row}")
             github_org_name = row['GitHub-Org-Name']
             snyk_org = row['Snyk-Org-Name']
             
@@ -93,7 +107,7 @@ def run_snyk_api_import(
                 })
         
         for match in matches:
-            snykIntegrations = get_org_integrations(match['snyk_org_id'])
+            snykIntegrations = get_org_integrations(match['snyk_org_id'], snyk_api_tenant)
             newSnykApiImportOrgDataObject = {
                     "name": match['github_org_name'],
                     "orgId": match['snyk_org_id'],
@@ -112,28 +126,29 @@ def run_snyk_api_import(
             snykApiImportOrgDataObject = {"orgData": [orgData]}
             writeJsonFile(snykApiImportOrgDataObject, index)
     except Exception as e:
-        print(f"Error in writing to json file: {str(e)}")
+        print(f"Error in creating org data json files: {str(e)}")
         raise typer.Exit(1)
     
     # Find the json files
     try:
         org_data_files_path = find_org_data_files()
     except Exception as e:
-        print(f"Error in finding json files: {str(e)}")
+        print(f"Error in finding org data json files: {str(e)}")
         raise typer.Exit(1)
     
     # Import the json files
     try:
-        import_repos(org_data_files_path, snyk_api_import_name, SNYK_TOKEN)
+        import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, group_id, snyk_source_org_id)
     except Exception as e:
-        print(f"Error in importing repos: {str(e)}")
-        raise typer.Exit(1)
+        print(f"Error in importing repos: {str(e)} \n Continuing with cleanup...")
     
     # Clean up the json and log files
     try:
-        clean_up(org_data_files_path, True)
+        clean_up(org_data_files_path, 'json')
         log_files_path = find_log_files()
-        clean_up(log_files_path, False)
+        clean_up(log_files_path, 'log')
+        import_files_path = find_batch_import_data_files()
+        clean_up(import_files_path, 'import')
     except Exception as e:
         print(f"Error in cleaning up json files: {str(e)}")
         raise typer.Exit(1)
