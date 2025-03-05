@@ -26,6 +26,20 @@ def read_csv_file(csv_file_path: str) -> List[Dict[str, str]]:
         typer.echo(f"Error reading CSV file: {str(e)}")
         raise typer.Exit(code=1) 
     
+def read_json_file(json_file_path: str) -> List[Dict[str, str]]:
+    try:
+        with open(json_file_path, 'r') as file:
+            return json.load(file)
+    except:
+        print('Failed to read json file.')
+
+def write_json_file(json_file_path: str, data: dict) -> None:
+    try:
+        with open(json_file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+    except:
+        print('Failed to write json file.')
+    
 # Write snyk-created-orgs.json file
 def writeJsonFile(orgDataObject, index):
     fileName = f'snyk-created-orgs-{index}.json'
@@ -104,7 +118,7 @@ def find_matching_org_id(org_data: dict, group_org_data: list, index: int) -> st
     
     return None   
 
-def import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, group_id, source_org_id):
+def import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, group_id, source_org_id, github_cloud_app_integration):
     group_org_data = get_snyk_orgs(group_id, snyk_api_tenant)
     for org_data_file_path in org_data_files_path:
         print(org_data_file_path)
@@ -123,6 +137,21 @@ def import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, gro
                 
                 # Process each batch file
                 for index, batch_file in enumerate(import_files[0]):
+                    # Check if github-cloud-app integration is used
+                    if github_cloud_app_integration:
+                        print('Using github-cloud-app integration')
+                        import_data = read_json_file(batch_file)
+                        org_id = import_data['targets'][0]['orgId']
+                        integrations = get_org_integrations(org_id, snyk_api_tenant)
+                        if 'github-cloud-app' in integrations:
+                            github_integration_id = integrations['github-cloud-app']
+                            for import_target in import_data['targets']:
+                                import_target['integrationId'] = github_integration_id    
+                            write_json_file(batch_file, import_data)
+                            print(f"Updated {len(import_data['targets'])} targets with new integration ID: {github_integration_id}") 
+                        else:
+                            print('No github-cloud-app integration found, continuing with github-enterprise integration')
+
                     print(f'Processing batch file number: {index}.  File name: {batch_file}')
                     if index > 0:
                         matching_org_id = find_matching_org_id(org_data, group_org_data, index + 1)
@@ -147,6 +176,20 @@ def import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, gro
             else:
                 print(f'Importing data file {import_file_path}')
                 # subprocess.run(f'DEBUG=* SNYK_API=https:/{snyk_api_tenant}/v1  {current_directory}/{snyk_api_import_name} import --file={batch_file}', shell=True)
+                if github_cloud_app_integration:
+                        print('Using github-cloud-app integration')
+                        import_data = read_json_file(import_file_path)
+                        org_id = import_data['targets'][0]['orgId']
+                        integrations = get_org_integrations(org_id, snyk_api_tenant)
+                        if 'github-cloud-app' in integrations:
+                            github_integration_id = integrations['github-cloud-app']
+                            for import_target in import_data['targets']:
+                                import_target['integrationId'] = github_integration_id    
+                            write_json_file(import_file_path, import_data)
+                            print(f"Updated {len(import_data['targets'])} targets with new integration ID: {github_integration_id}") 
+                        else:
+                            print('No github-cloud-app integration found, continuing with github-enterprise integration')
+
                 subprocess.run(f'SNYK_API=https:/{snyk_api_tenant}/v1  {current_directory}/{snyk_api_import_name} import --file={import_file_path}', shell=True)
                     
         else:

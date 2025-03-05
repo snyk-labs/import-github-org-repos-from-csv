@@ -1,3 +1,4 @@
+from typing import Annotated
 import typer
 from apis.snykApi import get_org_integrations, get_snyk_orgs
 from utils.utils import clean_up, find_log_files, find_org_data_files, import_repos, read_csv_file, writeJsonFile, find_batch_import_data_files
@@ -48,6 +49,13 @@ def run_snyk_api_import(
         "--snyk-source-org-id",
         help="Snyk source org ID",
         envvar="SNYK_SOURCE_ORG_ID"
+    ),
+    use_github_cloud_app_integration: bool = typer.Option(
+        False,
+        "--use-github-cloud-app-integration",
+        help="Use the GitHub Cloud App integration for the import if it exists. Default: False",
+        is_flag=True,
+        envvar="USE_GITHUB_CLOUD_APP_INTEGRATION"
     )
 ):
     """
@@ -138,7 +146,7 @@ def run_snyk_api_import(
     
     # Import the json files
     try:
-        import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, group_id, snyk_source_org_id)
+        import_repos(org_data_files_path, snyk_api_import_name, snyk_api_tenant, group_id, snyk_source_org_id, use_github_cloud_app_integration)
     except Exception as e:
         print(f"Error in importing repos: {str(e)} \n Continuing with cleanup...")
     

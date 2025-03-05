@@ -35,3 +35,6 @@ python3 index.py --csv-file-path=FULL-PATH-TO-CSV-File --github-token=GITHUB-TOK
 
 ## Example run command
 python3 index.py --csv-file-path=FULL-PATH-TO-CSV-File --github-token=GITHUB-TOKEN --group-id=SNYK-GROUP-ID --snyk-api-import-name=snyk-api-import
+
+## Example run command with github-cloud-app integration
+python3 index.py --csv-file-path=FULL-PATH-TO-CSV-File --github-token=GITHUB-TOKEN --group-id=SNYK-GROUP-ID --snyk-api-import-name=snyk-api-import --use-github-cloud-app-integration
